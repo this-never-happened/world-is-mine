@@ -312,7 +312,7 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const CONFIG = {
   trackTitleLocked: "Superman",
-  trackTitleUnlocked: "The World Is Mine",
+  trackTitleUnlocked: "Soothe My Mind",
   artist: "Lane 8, Kasbo & BJOERN",
 
   // Paste your SoundCloud private share embed or Spotify embed HTML here
@@ -330,8 +330,25 @@ const CONFIG = {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Populate locked title
-document.getElementById('trackTitle').textContent = CONFIG.trackTitleLocked;
+// ── Locked title cycle ───────────────────────────────────────────────────────
+const LOCKED_TITLES = ["Superman", "Soothe My Mind", "???", "What Is That ID"];
+let _titleCycleTimer = null;
+let _titleIndex = 0;
+
+function startTitleCycle() {
+  const titleEl = document.getElementById('trackTitle');
+  titleEl.textContent = LOCKED_TITLES[0];
+
+  function cycleNext() {
+    _titleIndex = (_titleIndex + 1) % LOCKED_TITLES.length;
+    scrambleReveal(titleEl, LOCKED_TITLES[_titleIndex]);
+    _titleCycleTimer = setTimeout(cycleNext, 3600); // 1260ms scramble + ~2340ms read
+  }
+
+  _titleCycleTimer = setTimeout(cycleNext, 3000); // first swap after 3s
+}
+
+startTitleCycle();
 
 // Dev mode — append ?dev to the URL to show the bypass button
 if (new URLSearchParams(window.location.search).has('dev')) {
@@ -412,7 +429,8 @@ function unlock(cityName) {
   // Reveal artwork
   document.getElementById('artwork').classList.add('unlocked');
 
-  // Scramble reveal the real title + flash it orange
+  // Kill the locked title cycle and reveal the real title
+  clearTimeout(_titleCycleTimer);
   setTimeout(() => {
     const titleEl = document.getElementById('trackTitle');
     scrambleReveal(titleEl, CONFIG.trackTitleUnlocked);
