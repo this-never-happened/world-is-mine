@@ -176,6 +176,42 @@
     box-shadow: 0 0 0 1px rgba(212,168,67,0.18), 0 8px 32px rgba(0,0,0,0.55);
   }
 
+  /* Pre-save widget */
+  .presave-wrap {
+    width: min(72vw, 340px);
+    margin-top: 28px;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.9s ease 2.2s, transform 0.9s ease 2.2s;
+    text-align: center;
+  }
+
+  .presave-wrap::before {
+    content: 'PRE-SAVE NOW';
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 10px;
+    opacity: 0.75;
+  }
+
+  .presave-wrap.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .presave-wrap iframe {
+    border: none;
+    border-radius: 12px;
+    width: 300px;
+    height: 250px;
+    display: block;
+    margin: 0 auto;
+    box-shadow: 0 0 0 1px rgba(212,168,67,0.12), 0 8px 32px rgba(0,0,0,0.5);
+  }
+
   /* CTA button */
   .cta-wrap {
     margin-top: 28px;
@@ -300,6 +336,10 @@
   </div>
 
   <div class="player-wrap" id="playerWrap"></div>
+
+  <div class="presave-wrap" id="presaveWrap">
+    <iframe src="https://tnh.ffm.to/worldismine/widget?width=300&height=250&note=" width="300" height="250" scrolling="no" frameborder="0" loading="lazy"></iframe>
+  </div>
 
   <div class="cta-wrap" id="ctaWrap">
     <button class="btn-locate" id="btnLocate" onclick="checkLocation()">Find my location</button>
@@ -473,6 +513,9 @@ function unlock(cityName) {
   const playerWrap = document.getElementById('playerWrap');
   playerWrap.innerHTML = CONFIG.embedHTML;
   playerWrap.classList.add('visible');
+
+  // Reveal pre-save widget (delayed so it lands after the player fades in)
+  document.getElementById('presaveWrap').classList.add('visible');
 
   // Hide CTA
   document.getElementById('ctaWrap').classList.add('hidden');
