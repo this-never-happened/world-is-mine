@@ -123,7 +123,7 @@
 
   /* Track info */
   .track-info {
-    margin-top: 24px;
+    margin-top: 12px;
     text-align: center;
     opacity: 1;
     transform: translateY(0);
@@ -328,14 +328,17 @@ const CONFIG = {
   // Paste your SoundCloud private share embed or Spotify embed HTML here
   // SoundCloud example: '<iframe width="100%" height="166" allow="autoplay" src="https://w.soundcloud.com/player/?url=...&auto_play=true&color=%23E8621A"></iframe>'
   // Spotify example:    '<iframe src="https://open.spotify.com/embed/track/..." height="80" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>'
-  embedHTML: `<iframe style="border-radius: 24px" src="https://untitled.stream/embed/MOhK7m3fRDEL" width="100%" height="344" allowFullScreen="" allow="picture-in-picture" frameborder="0" loading="lazy"></iframe>`,
+  embedHTML: `<iframe style="border-radius: 12px; color-scheme: dark;" src="https://untitled.stream/embed/MOhK7m3fRDEL?theme=dark&bg=1a0e06&color=e8621a" width="100%" height="344" allowFullScreen="" allow="picture-in-picture" frameborder="0" loading="lazy"></iframe>`,
 
   // Unlock zones — lat, lng, radius in metres
   // NOTE: radii set large for city-wide testing — tighten to 300 before campaign launch
   zones: [
-    { city: "London",    lat: 51.5045,   lng: -0.1573,   radius: 15000 },  // Greater London
-    { city: "Denver",    lat: 39.7471,   lng: -104.9498,  radius: 15000 },  // Greater Denver
-    // ADD: Stockholm (Djurgården or Humlegården), + others TBC
+    { city: "UK",        lat: 54.7024,   lng: -3.2766,    radius: 700000  },  // UK (nationwide)
+    { city: "London",    lat: 51.5045,   lng: -0.1573,    radius: 15000   },  // Greater London
+    { city: "Denver",    lat: 39.7471,   lng: -104.9498,  radius: 15000   },  // Greater Denver
+    { city: "USA",       lat: 39.8283,   lng: -98.5795,   radius: 2500000 },  // Continental USA
+    { city: "Mexico",    lat: 23.6345,   lng: -102.5528,  radius: 2000000 },  // Mexico (nationwide)
+    { city: "Sweden",    lat: 60.1282,   lng:  18.6435,   radius: 700000  },  // Sweden (nationwide)
   ]
 };
 // ─────────────────────────────────────────────────────────────────────────────
@@ -493,6 +496,11 @@ function unlock(cityName) {
     setTimeout(() => {
       wrap.innerHTML = '<iframe src="https://tnh.ffm.to/worldismine/widget?width=300&height=250&note=" scrolling="no" frameborder="0" loading="lazy"></iframe>';
       wrap.classList.add('presave');
+      // Remove square constraint so feature.fm widget fills cleanly
+      wrap.style.aspectRatio = 'auto';
+      wrap.style.height = '250px';
+      wrap.style.width = 'min(72vw, 300px)';
+      wrap.style.marginTop = '0';
       wrap.style.opacity = '1';
     }, 650);
   }, 2800);
