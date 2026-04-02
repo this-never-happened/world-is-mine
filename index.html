@@ -70,17 +70,37 @@
     flex-shrink: 0;
   }
 
+  @keyframes kenburns {
+    0%   { transform: scale(1.02) translate(0px,    0px);   }
+    25%  { transform: scale(1.05) translate(-5px,  -4px);   }
+    50%  { transform: scale(1.05) translate( 4px,  -5px);   }
+    75%  { transform: scale(1.05) translate( 3px,   3px);   }
+    100% { transform: scale(1.02) translate(0px,    0px);   }
+  }
+
   .artwork-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
     filter: grayscale(100%) brightness(0.35);
-    transition: filter 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: filter 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    animation: kenburns 16s ease-in-out infinite;
+    will-change: transform;
   }
 
   .artwork-img.unlocked {
     filter: grayscale(0%) brightness(1);
+  }
+
+  /* Edge vignette on artwork */
+  .artwork-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    box-shadow: inset 0 0 40px rgba(26,14,6,0.55);
+    pointer-events: none;
   }
 
   /* Track info */
@@ -92,16 +112,42 @@
   }
 
   .track-title {
-    font-size: 1.1rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--cream);
     transition: color 0.6s ease;
   }
 
-  .track-title.unlocked {
-    color: var(--orange);
+  .track-title.unlocked { color: var(--orange); }
+
+  /* Solari board tiles */
+  .tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35ch;
+    height: 1.8em;
+    background: rgba(245,237,216,0.06);
+    border-radius: 2px;
+    border-bottom: 1px solid rgba(245,237,216,0.1);
+  }
+
+  .tile.space {
+    width: 0.7ch;
+    background: transparent;
+    border: none;
+  }
+
+  @keyframes flap {
+    0%   { transform: rotateX(0deg);   }
+    49%  { transform: rotateX(-90deg); }
+    51%  { transform: rotateX(90deg);  }
+    100% { transform: rotateX(0deg);   }
   }
 
   .track-artist {
@@ -112,6 +158,19 @@
     margin-top: 4px;
     text-transform: uppercase;
   }
+
+  /* Pre-save widget */
+  .artwork-wrap.presave {
+    background: rgba(245,237,216,0.03);
+    border: 1px solid rgba(212,168,67,0.18);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .artwork-wrap.presave::after { display: none; }
 
   /* Player embed area */
   .player-wrap {
@@ -264,7 +323,7 @@
   </div>
 
   <div class="track-info" id="trackInfo">
-    <div class="track-title" id="trackTitle">Superman</div>
+    <div class="track-title" id="trackTitle"></div>
     <div class="track-artist">Lane 8, Kasbo &amp; BJOERN</div>
   </div>
 
@@ -303,24 +362,44 @@ if (new URLSearchParams(window.location.search).has('dev')) {
   document.getElementById('btnDev').style.display = 'block';
 }
 
-// Split-flap (Solari board) title reveal
+// Split-flap (Solari board) — CSS rotateX flip per tile
 function splitFlap(el, finalText) {
   const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   const upper = finalText.toUpperCase();
+
+  el.style.perspective = '400px';
   el.innerHTML = upper.split('').map(c =>
-    `<span>${c === ' ' ? '\u00a0' : CHARS[Math.floor(Math.random() * CHARS.length)]}</span>`
+    c === ' '
+      ? '<span class="tile space"> </span>'
+      : `<span class="tile">${CHARS[Math.floor(Math.random() * CHARS.length)]}</span>`
   ).join('');
-  const spans = el.querySelectorAll('span');
-  upper.split('').forEach((target, i) => {
-    if (target === ' ') return;
-    const steps = 6 + i * 2;
-    let step = 0;
-    setTimeout(() => {
-      const iv = setInterval(() => {
-        spans[i].textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
-        if (++step >= steps) { spans[i].textContent = target; clearInterval(iv); }
-      }, 55);
-    }, i * 65);
+
+  el.querySelectorAll('.tile:not(.space)').forEach((tile, i) => {
+    const chars = upper.split('').filter(c => c !== ' ');
+    const target = chars[i];
+    const totalFlips = 4 + i * 2;
+    let flip = 0;
+
+    function doFlip() {
+      tile.style.animation = 'none';
+      void tile.offsetWidth; // force reflow
+      tile.style.animation = 'flap 0.14s linear';
+      setTimeout(() => {
+        flip++;
+        tile.textContent = flip < totalFlips
+          ? CHARS[Math.floor(Math.random() * CHARS.length)]
+          : target;
+        if (flip < totalFlips) {
+          tile.addEventListener('animationend', doFlip, { once: true });
+        } else {
+          tile.addEventListener('animationend', () => {
+            tile.style.animation = '';
+          }, { once: true });
+        }
+      }, 70); // change char at mid-flip
+    }
+
+    setTimeout(doFlip, i * 90);
   });
 }
 
@@ -435,14 +514,9 @@ function unlock(cityName) {
     wrap.style.transition = 'opacity 0.6s ease';
     wrap.style.opacity = '0';
     setTimeout(() => {
-      wrap.innerHTML = '<iframe src="https://tnh.ffm.to/worldismine/widget?width=300&height=250&note=" scrolling="no" frameborder="0" loading="lazy"></iframe>';
+      wrap.innerHTML = '<iframe src="https://tnh.ffm.to/worldismine/widget?width=300&height=250&note=" scrolling="no" frameborder="0" loading="eager"></iframe>';
       wrap.classList.add('presave');
-      // Remove square constraint so feature.fm widget fills cleanly
-      wrap.style.aspectRatio = 'auto';
-      wrap.style.height = '250px';
-      wrap.style.width = 'min(72vw, 300px)';
-      wrap.style.marginTop = '0';
-      wrap.style.opacity = '1';
+      wrap.style.cssText = 'aspect-ratio:auto;height:250px;width:min(72vw,300px);margin-top:0;opacity:1;';
     }, 650);
   }, 2800);
 
