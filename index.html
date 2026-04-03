@@ -39,6 +39,22 @@
     opacity: 0.4;
   }
 
+  /* Full-screen artwork background — revealed on unlock */
+  #bgArt {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.28);
+    opacity: 0;
+    transition: opacity 2.5s ease;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  #bgArt.visible { opacity: 1; }
+
   .scene {
     position: relative;
     height: 100vh;
@@ -48,6 +64,7 @@
     align-items: center;
     justify-content: center;
     gap: 0;
+    z-index: 1;
   }
 
   /* Artwork */
@@ -125,23 +142,16 @@
 
   .track-title.unlocked { color: var(--orange); }
 
-  /* Solari board tiles */
+  /* Solari board tiles — no box, letters only */
   .tile {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 1.35ch;
     height: 1.8em;
-    background: rgba(245,237,216,0.06);
-    border-radius: 2px;
-    border-bottom: 1px solid rgba(245,237,216,0.1);
   }
 
-  .tile.space {
-    width: 0.7ch;
-    background: transparent;
-    border: none;
-  }
+  .tile.space { width: 0.7ch; }
 
   @keyframes flap {
     0%   { transform: rotateX(0deg);   }
@@ -314,6 +324,9 @@
 </head>
 <body>
 
+<!-- Full-screen background artwork (revealed on unlock) -->
+<img id="bgArt" src="Lane 8_Cross Poll_World is mine [high res].jpg" alt="">
+
 <!-- Decorative city dots -->
 <div class="city-dots" id="cityDots"></div>
 
@@ -405,22 +418,6 @@ function idleFlap(el) {
   setTimeout(loop, 600 + Math.random() * 800);
 }
 
-// Sample artwork dominant colour for background tint on unlock
-function artworkBg() {
-  try {
-    const img = document.getElementById('artwork');
-    const c = document.createElement('canvas');
-    c.width = c.height = 12;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0, 12, 12);
-    const d = ctx.getImageData(0, 0, 12, 12).data;
-    let r = 0, g = 0, b = 0;
-    for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i+1]; b += d[i+2]; }
-    const n = d.length / 4;
-    return `rgb(${Math.round(r/n*0.22)},${Math.round(g/n*0.22)},${Math.round(b/n*0.22)})`;
-  } catch(e) { return null; }
-}
-
 const titleEl = document.getElementById('trackTitle');
 renderTitle(titleEl, CONFIG.trackTitleLocked);
 idleFlap(titleEl);
@@ -503,9 +500,8 @@ function revoke() {
   btn.disabled    = false;
   btn.textContent = 'Find my location';
 
-  // Restore background
-  document.body.style.transition = 'background-color 1.5s ease';
-  document.body.style.backgroundColor = '';
+  // Hide artwork background
+  document.getElementById('bgArt').classList.remove('visible');
 
   setStatus("You've left the zone — return to unlock again.");
 }
@@ -524,11 +520,10 @@ function unlock(cityName) {
     document.getElementById('trackTitle').classList.add('unlocked');
   }, 800);
 
-  // Tint background to match artwork
+  // Reveal full-screen artwork background
   setTimeout(() => {
-    const bg = artworkBg();
-    if (bg) { document.body.style.transition = 'background-color 2.5s ease'; document.body.style.backgroundColor = bg; }
-  }, 1200);
+    document.getElementById('bgArt').classList.add('visible');
+  }, 600);
 
   // Inject player
   const playerWrap = document.getElementById('playerWrap');
