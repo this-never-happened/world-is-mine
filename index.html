@@ -483,6 +483,10 @@ function revoke() {
   btn.disabled    = false;
   btn.textContent = 'Find my location';
 
+  // Restore background
+  document.body.style.transition = 'background-color 1.5s ease';
+  document.body.style.backgroundColor = '';
+
   setStatus("You've left the zone — return to unlock again.");
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -495,12 +499,16 @@ function unlock(cityName) {
   // Reveal artwork
   document.getElementById('artwork').classList.add('unlocked');
 
-  // Reveal the real title with split-flap
+  // Title turns orange on unlock
   setTimeout(() => {
-    const titleEl = document.getElementById('trackTitle');
-    splitFlap(titleEl, CONFIG.trackTitleUnlocked);
-    titleEl.classList.add('unlocked');
+    document.getElementById('trackTitle').classList.add('unlocked');
   }, 800);
+
+  // Tint background to match artwork
+  setTimeout(() => {
+    const bg = artworkBg();
+    if (bg) { document.body.style.transition = 'background-color 2.5s ease'; document.body.style.backgroundColor = bg; }
+  }, 1200);
 
   // Inject player
   const playerWrap = document.getElementById('playerWrap');
