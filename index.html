@@ -68,15 +68,6 @@
   }
 
   /* Artwork */
-  .artwork-wrap.presave iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-    border-radius: inherit;
-    display: block;
-  }
 
   .artwork-wrap {
     position: relative;
@@ -169,18 +160,53 @@
     text-transform: uppercase;
   }
 
-  /* Pre-save widget */
-  .artwork-wrap.presave {
-    background: rgba(245,237,216,0.03);
-    border: 1px solid rgba(212,168,67,0.18);
-    border-radius: 8px;
-    overflow: hidden;
+  /* Pre-save button */
+  .presave-wrap {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    margin-top: 8px;
   }
 
-  .artwork-wrap.presave::after { display: none; }
+  .presave-wrap.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .presave-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.22em;
+    color: var(--gold);
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  .btn-presave {
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid rgba(245,237,216,0.35);
+    padding: 13px 32px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-presave:hover, .btn-presave:active {
+    background: rgba(245,237,216,0.08);
+    border-color: var(--cream);
+  }
 
   /* Player embed area */
   .player-wrap {
@@ -342,6 +368,11 @@
 
   <div class="player-wrap" id="playerWrap"></div>
 
+  <div class="presave-wrap" id="presaveWrap">
+    <span class="presave-label">Out now</span>
+    <a class="btn-presave" href="https://tnh.ffm.to/worldismine" target="_blank" rel="noopener">Save to library</a>
+  </div>
+
   <div class="cta-wrap" id="ctaWrap">
     <button class="btn-locate" id="btnLocate" onclick="checkLocation()">Find my location</button>
     <div class="status" id="status"></div>
@@ -481,17 +512,8 @@ function revoke() {
   playerWrap.innerHTML = '';
   playerWrap.classList.remove('visible');
 
-  // Restore artwork slot — swap pre-save back to locked artwork
-  const wrap = document.querySelector('.artwork-wrap');
-  if (wrap.classList.contains('presave')) {
-    // Can't restore base64 artwork easily — just reset to dark placeholder
-    wrap.classList.remove('presave');
-    wrap.style.aspectRatio  = '';
-    wrap.style.height       = '';
-    wrap.style.width        = '';
-    wrap.style.opacity      = '1';
-    wrap.innerHTML = '';
-  }
+  // Hide pre-save button
+  document.getElementById('presaveWrap').classList.remove('visible');
 
   // Re-show locate button
   const ctaWrap = document.getElementById('ctaWrap');
@@ -530,17 +552,9 @@ function unlock(cityName) {
   playerWrap.innerHTML = CONFIG.embedHTML;
   playerWrap.classList.add('visible');
 
-  // Swap artwork slot → pre-save widget after a beat
+  // Reveal pre-save button after artwork has had its moment
   setTimeout(() => {
-    const wrap = document.querySelector('.artwork-wrap');
-    // Fade out artwork + overlay
-    wrap.style.transition = 'opacity 0.6s ease';
-    wrap.style.opacity = '0';
-    setTimeout(() => {
-      wrap.innerHTML = '<iframe src="https://tnh.ffm.to/worldismine/widget?width=300&height=250&note=" scrolling="no" frameborder="0" loading="eager"></iframe>';
-      wrap.classList.add('presave');
-      wrap.style.cssText = 'aspect-ratio:auto;height:250px;width:min(72vw,300px);margin-top:0;opacity:1;';
-    }, 650);
+    document.getElementById('presaveWrap').classList.add('visible');
   }, 2800);
 
   // Mark as unlocked and start continuous geo-watch
