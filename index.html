@@ -362,48 +362,68 @@ if (new URLSearchParams(window.location.search).has('dev')) {
   document.getElementById('btnDev').style.display = 'block';
 }
 
-// Split-flap (Solari board) — CSS rotateX flip per tile
-function splitFlap(el, finalText) {
-  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const upper = finalText.toUpperCase();
-
+// Render title as tiles showing correct chars immediately
+function renderTitle(el, text) {
+  const upper = text.toUpperCase();
   el.style.perspective = '400px';
   el.innerHTML = upper.split('').map(c =>
     c === ' '
-      ? '<span class="tile space"> </span>'
-      : `<span class="tile">${CHARS[Math.floor(Math.random() * CHARS.length)]}</span>`
+      ? '<span class="tile space">\u00a0</span>'
+      : `<span class="tile" data-char="${c}">${c}</span>`
   ).join('');
-
-  el.querySelectorAll('.tile:not(.space)').forEach((tile, i) => {
-    const chars = upper.split('').filter(c => c !== ' ');
-    const target = chars[i];
-    const totalFlips = 4 + i * 2;
-    let flip = 0;
-
-    function doFlip() {
-      tile.style.animation = 'none';
-      void tile.offsetWidth; // force reflow
-      tile.style.animation = 'flap 0.14s linear';
-      setTimeout(() => {
-        flip++;
-        tile.textContent = flip < totalFlips
-          ? CHARS[Math.floor(Math.random() * CHARS.length)]
-          : target;
-        if (flip < totalFlips) {
-          tile.addEventListener('animationend', doFlip, { once: true });
-        } else {
-          tile.addEventListener('animationend', () => {
-            tile.style.animation = '';
-          }, { once: true });
-        }
-      }, 70); // change char at mid-flip
-    }
-
-    setTimeout(doFlip, i * 90);
-  });
 }
 
-splitFlap(document.getElementById('trackTitle'), CONFIG.trackTitleLocked);
+// Flip a tile to a random char then back to its real char
+function flipTile(tile) {
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const orig = tile.dataset.char;
+  const rnd  = CHARS[Math.floor(Math.random() * CHARS.length)];
+
+  function doFlip(nextChar, then) {
+    tile.style.animation = 'none';
+    void tile.offsetWidth;
+    tile.style.animation = 'flap 0.13s linear';
+    setTimeout(() => { tile.textContent = nextChar; }, 65);
+    tile.addEventListener('animationend', () => { tile.style.animation = ''; then(); }, { once: true });
+  }
+
+  doFlip(rnd, () => doFlip(orig, () => { tile.textContent = orig; }));
+}
+
+// Randomly flip individual letters on a slow idle loop
+function idleFlap(el) {
+  function loop() {
+    const tiles = [...el.querySelectorAll('.tile:not(.space):not([data-busy])')];
+    if (tiles.length) {
+      const tile = tiles[Math.floor(Math.random() * tiles.length)];
+      tile.dataset.busy = '1';
+      flipTile(tile);
+      setTimeout(() => delete tile.dataset.busy, 400);
+    }
+    setTimeout(loop, 900 + Math.random() * 1400);
+  }
+  setTimeout(loop, 600 + Math.random() * 800);
+}
+
+// Sample artwork dominant colour for background tint on unlock
+function artworkBg() {
+  try {
+    const img = document.getElementById('artwork');
+    const c = document.createElement('canvas');
+    c.width = c.height = 12;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, 12, 12);
+    const d = ctx.getImageData(0, 0, 12, 12).data;
+    let r = 0, g = 0, b = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i+1]; b += d[i+2]; }
+    const n = d.length / 4;
+    return `rgb(${Math.round(r/n*0.22)},${Math.round(g/n*0.22)},${Math.round(b/n*0.22)})`;
+  } catch(e) { return null; }
+}
+
+const titleEl = document.getElementById('trackTitle');
+renderTitle(titleEl, CONFIG.trackTitleLocked);
+idleFlap(titleEl);
 
 // Decorative city dots (approximate screen positions — purely aesthetic)
 const dotPositions = [
