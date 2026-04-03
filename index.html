@@ -522,10 +522,12 @@ function revoke() {
   btn.disabled    = false;
   btn.textContent = 'Find my location';
 
-  // Hide artwork background
+  // Hide artwork background + restore artwork to greyscale
   document.getElementById('bgArt').classList.remove('visible');
+  document.getElementById('artwork').classList.remove('unlocked');
+  document.getElementById('trackTitle').classList.remove('unlocked');
 
-  setStatus("You've left the zone — return to unlock again.");
+  setStatus('Thanks for listening.');
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
