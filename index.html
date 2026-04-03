@@ -592,6 +592,11 @@ function unlock(cityName) {
   _isUnlocked = true;
   startWatching();
 
+  // Revoke if user backgrounds the page or locks their screen
+  document.addEventListener('visibilitychange', () => {
+    if (_isUnlocked && document.hidden) revoke();
+  }, { once: true });
+
   // Hide CTA
   document.getElementById('ctaWrap').classList.add('hidden');
 
