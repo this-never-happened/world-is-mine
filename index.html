@@ -348,6 +348,22 @@
     margin-top: 4px;
     opacity: 0.7;
   }
+
+  /* ── Mobile: fit everything on one screen ─────────────────────────────────── */
+  @media (max-height: 780px) {
+    .scene          { padding: 16px 0 28px; }
+    .artwork-wrap   { width: min(52vw, 190px); }
+    .track-info     { margin-top: 8px; }
+    .track-title    { font-size: 1rem; }
+    .track-artist   { font-size: 0.68rem; }
+    .player-wrap    { margin-top: 12px; }
+    .player-wrap::before { margin-bottom: 6px; }
+    .player-wrap iframe  { height: 155px !important; }
+    .presave-wrap   { margin-top: 6px; gap: 7px; }
+    .btn-presave    { padding: 10px 24px; font-size: 0.72rem; }
+    .presave-label  { font-size: 0.54rem; }
+    .cta-wrap       { margin-top: 18px; }
+  }
 </style>
 </head>
 <body>
