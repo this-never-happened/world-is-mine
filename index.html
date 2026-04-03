@@ -221,15 +221,17 @@
     position: relative;
   }
 
-  .player-wrap::before {
-    content: 'NOW PLAYING';
-    display: block;
+  .now-playing-label {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
     font-size: 0.6rem;
     font-weight: 500;
     letter-spacing: 0.2em;
     color: var(--gold);
     margin-bottom: 10px;
     opacity: 0.75;
+    text-transform: uppercase;
   }
 
   .player-wrap.visible {
@@ -357,7 +359,7 @@
     .track-title    { font-size: 1rem; }
     .track-artist   { font-size: 0.68rem; }
     .player-wrap    { margin-top: 12px; }
-    .player-wrap::before { margin-bottom: 6px; }
+    .now-playing-label { margin-bottom: 6px; }
     .player-wrap iframe  { height: 155px !important; }
     .presave-wrap   { margin-top: 6px; gap: 7px; }
     .btn-presave    { padding: 10px 24px; font-size: 0.72rem; }
@@ -452,9 +454,11 @@ function flipTile(tile) {
   doFlip(rnd, () => doFlip(orig, () => { tile.textContent = orig; }));
 }
 
-// Randomly flip individual letters on a slow idle loop
+// Randomly flip individual letters on a slow idle loop; returns a stop fn
 function idleFlap(el) {
+  let stopped = false;
   function loop() {
+    if (stopped) return;
     const tiles = [...el.querySelectorAll('.tile:not(.space):not([data-busy])')];
     if (tiles.length) {
       const tile = tiles[Math.floor(Math.random() * tiles.length)];
@@ -465,11 +469,12 @@ function idleFlap(el) {
     setTimeout(loop, 900 + Math.random() * 1400);
   }
   setTimeout(loop, 600 + Math.random() * 800);
+  return () => { stopped = true; };
 }
 
 const titleEl = document.getElementById('trackTitle');
 renderTitle(titleEl, CONFIG.trackTitleLocked);
-idleFlap(titleEl);
+const stopTitleFlap = idleFlap(titleEl);
 
 // Decorative city dots (approximate screen positions — purely aesthetic)
 const dotPositions = [
@@ -557,7 +562,8 @@ function unlock(cityName) {
   // Reveal artwork
   document.getElementById('artwork').classList.add('unlocked');
 
-  // Title turns orange on unlock
+  // Stop title idle flap, turn orange
+  stopTitleFlap();
   setTimeout(() => {
     document.getElementById('trackTitle').classList.add('unlocked');
   }, 800);
@@ -567,10 +573,15 @@ function unlock(cityName) {
     document.getElementById('bgArt').classList.add('visible');
   }, 600);
 
-  // Inject player
+  // Inject player with NOW PLAYING label
   const playerWrap = document.getElementById('playerWrap');
-  playerWrap.innerHTML = CONFIG.embedHTML;
+  const labelEl = document.createElement('div');
+  labelEl.className = 'now-playing-label';
+  playerWrap.appendChild(labelEl);
+  playerWrap.insertAdjacentHTML('beforeend', CONFIG.embedHTML);
   playerWrap.classList.add('visible');
+  renderTitle(labelEl, 'Now Playing');
+  idleFlap(labelEl);
 
   // Reveal pre-save button after artwork has had its moment
   setTimeout(() => {
