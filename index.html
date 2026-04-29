@@ -3,89 +3,178 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>World Is Mine</title>
+<title>Cross Pollination II — Lane 8</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --orange: #E8621A;
-    --teal: #2A7C6F;
-    --gold: #D4A843;
-    --cream: #F5EDD8;
-    --brown: #2C1A0E;
-    --bg: #1A0E06;
+    /* pulled from album cover */
+    --bg:        #0d0a14;
+    --bg-soft:   #14111c;
+    --cream:     #F2EAB8;
+    --pearl:     #A4D6C9;
+    --vine:      #2F8F3F;
+    --sky:       #5BA3D0;
+    --coral:     #E55B4F;
+    --sun:       #F08A3E;
+    --ink:       #cfc89a;
+    --muted:     rgba(242,234,184,0.55);
+    --hairline:  rgba(242,234,184,0.18);
   }
 
   html, body {
-    height: 100%;
+    min-height: 100%;
     width: 100%;
     overflow-x: hidden;
-    overflow-y: auto;
     background: var(--bg);
     font-family: 'Montserrat', system-ui, sans-serif;
     color: var(--cream);
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Grain overlay */
+  body {
+    overflow-y: auto;
+  }
+
+  /* ===== Pollen drift layer ===== */
+  .pollen-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .pollen {
+    position: absolute;
+    bottom: -20px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    opacity: 0;
+    filter: blur(0.4px);
+    will-change: transform, opacity;
+    animation: pollenRise linear infinite;
+  }
+  @keyframes pollenRise {
+    0%   { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
+    8%   { opacity: var(--peak, 0.55); }
+    50%  { transform: translate3d(var(--mx, 20px), -45vh, 0) scale(1); }
+    92%  { opacity: var(--peak, 0.55); }
+    100% { transform: translate3d(var(--ex, -10px), -110vh, 0) scale(0.5); opacity: 0; }
+  }
+
+  /* Riso grain overlay */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
-    background-size: 200px;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    background-size: 220px;
     pointer-events: none;
     z-index: 100;
-    opacity: 0.4;
+    opacity: 0.18;
+    mix-blend-mode: overlay;
   }
 
-  /* Full-screen artwork background — revealed on unlock */
+  /* full-screen blurred art behind everything, low opacity for atmosphere */
   #bgArt {
     position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    inset: -8%;
+    width: 116%;
+    height: 116%;
     object-fit: cover;
-    filter: brightness(0.28);
-    opacity: 0;
-    transition: opacity 2.5s ease;
+    filter: brightness(0.45) saturate(1.05) blur(28px);
+    opacity: 0.55;
     z-index: 0;
     pointer-events: none;
   }
 
-  #bgArt.visible { opacity: 1; }
-
-  .scene {
-    position: relative;
+  /* Two-view system: locked + unlocked */
+  .view {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
     min-height: 100vh;
     width: 100vw;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0;
-    z-index: 1;
-    padding: 32px 0 48px;
+    padding: 32px 20px 56px;
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .view.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.98);
+  }
+  .view.entering {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+
+  .scene {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 32px 20px 56px;
+  }
+
+  /* Header chrome */
+  .header-row {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 28px;
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+  }
+  .header-row .dot-mark {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--coral);
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+    box-shadow: 0 0 8px var(--coral);
+    animation: pulseLive 2s ease-in-out infinite;
+  }
+  @keyframes pulseLive {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(0.7); }
   }
 
   /* Artwork */
-
   .artwork-wrap {
     position: relative;
-    width: min(72vw, 340px);
+    width: min(76vw, 360px);
     aspect-ratio: 1 / 1;
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
     flex-shrink: 0;
+    box-shadow:
+      0 0 0 1px rgba(242,234,184,0.08),
+      0 30px 60px -20px rgba(0,0,0,0.7);
   }
 
-  @keyframes kenburns {
-    0%   { transform: scale(1.02) translate(0px,    0px);   }
-    25%  { transform: scale(1.05) translate(-5px,  -4px);   }
-    50%  { transform: scale(1.05) translate( 4px,  -5px);   }
-    75%  { transform: scale(1.05) translate( 3px,   3px);   }
-    100% { transform: scale(1.02) translate(0px,    0px);   }
+  @keyframes drift {
+    0%   { transform: scale(1.04) translate(0px,    0px);   }
+    25%  { transform: scale(1.06) translate(-4px,  -3px);   }
+    50%  { transform: scale(1.07) translate( 3px,  -4px);   }
+    75%  { transform: scale(1.06) translate( 4px,   2px);   }
+    100% { transform: scale(1.04) translate(0px,    0px);   }
   }
 
   .artwork-img {
@@ -93,413 +182,777 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    filter: grayscale(100%) brightness(0.35);
-    transition: filter 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    animation: kenburns 16s ease-in-out infinite;
+    animation: drift 22s ease-in-out infinite;
     will-change: transform;
+    filter: saturate(1) brightness(1);
+    transition: filter 1.6s ease;
   }
 
-  .artwork-img.unlocked {
-    filter: grayscale(0%) brightness(1);
+  .artwork-wrap.unlocked .artwork-img {
+    animation: drift 16s ease-in-out infinite, bloomPulse 2.4s ease-out;
+    filter: saturate(1.18) brightness(1.08);
   }
 
-  /* Edge vignette on artwork */
+  /* Map-zoom: the unlocked artwork pans/zooms to the city hotspot */
+  .artwork-wrap.zooming {
+    overflow: hidden;
+  }
+  .artwork-wrap .map-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform-origin: var(--hx, 50%) var(--hy, 50%);
+    transition: transform 4.5s cubic-bezier(.4,0,.2,1), filter 3.6s ease;
+    will-change: transform, filter;
+  }
+  .artwork-wrap.zoom-in .map-img {
+    transform: scale(var(--zoom, 1.8));
+    filter: saturate(1.15) brightness(1.04);
+  }
+  /* Hotspot bloom over the city's spot */
+  .hotspot-pulse {
+    position: absolute;
+    width: 32%;
+    height: 32%;
+    left: var(--hx, 50%);
+    top: var(--hy, 50%);
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle,
+                rgba(242,234,184,0.9) 0%,
+                rgba(229,91,79,0.5) 30%,
+                transparent 70%);
+    mix-blend-mode: screen;
+    opacity: 0;
+    z-index: 3;
+  }
+  .artwork-wrap.zoom-in .hotspot-pulse {
+    animation: hotspotBloom 4.6s ease-out 2.6s forwards;
+  }
+  @keyframes hotspotBloom {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+    40%  { opacity: 0.7; transform: translate(-50%, -50%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+  }
+  /* Crosshair ring marking the city */
+  .hotspot-ring {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    left: var(--hx, 50%);
+    top: var(--hy, 50%);
+    transform: translate(-50%, -50%) scale(0);
+    border: 1.5px solid var(--cream);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 4;
+    box-shadow: 0 0 24px rgba(242,234,184,0.4), inset 0 0 12px rgba(242,234,184,0.3);
+  }
+  .hotspot-ring::before, .hotspot-ring::after {
+    content: '';
+    position: absolute;
+    background: var(--cream);
+  }
+  .hotspot-ring::before {
+    left: 50%; top: -10px; bottom: -10px; width: 1px; transform: translateX(-50%);
+  }
+  .hotspot-ring::after {
+    top: 50%; left: -10px; right: -10px; height: 1px; transform: translateY(-50%);
+  }
+  .artwork-wrap.zoom-in .hotspot-ring {
+    animation: hotspotRing 4.8s ease-out 2.8s forwards;
+  }
+  @keyframes hotspotRing {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+    50%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.4); }
+  }
+
+  @keyframes bloomPulse {
+    0%   { filter: saturate(0.6) brightness(0.55); }
+    35%  { filter: saturate(1.5) brightness(1.4);  }
+    100% { filter: saturate(1.18) brightness(1.08);}
+  }
+
+  /* Soft inner edge */
   .artwork-wrap::after {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 4px;
-    box-shadow: inset 0 0 40px rgba(26,14,6,0.55);
+    box-shadow: inset 0 0 80px rgba(13,10,20,0.55);
     pointer-events: none;
   }
 
-  /* Track info */
-  .track-info {
-    margin-top: 12px;
-    text-align: center;
-    opacity: 1;
-    transform: translateY(0);
+  /* Bud-glow overlay — appears only on unlock */
+  .bud-glow {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 50%;
+    opacity: 0;
+    filter: blur(14px);
+    transition: opacity 1.4s ease;
+  }
+  .bud-glow.l {
+    width: 30%; height: 30%;
+    left: 21%; top: 12%;
+    background: radial-gradient(circle, var(--cream) 0%, transparent 70%);
+  }
+  .bud-glow.r {
+    width: 30%; height: 30%;
+    left: 49%; top: 12%;
+    background: radial-gradient(circle, var(--coral) 0%, transparent 70%);
+  }
+  .artwork-wrap.unlocked .bud-glow { opacity: 0.45; animation: glowPulse 4s ease-in-out infinite; }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.32; }
+    50% { opacity: 0.55; }
   }
 
-  .track-title {
-    display: flex;
-    justify-content: center;
-    gap: 2px;
-    font-size: 1.15rem;
+  /* Track + album type block */
+  .album-meta {
+    margin-top: 22px;
+    text-align: center;
+    width: min(76vw, 360px);
+  }
+  .album-name {
+    font-size: 0.6rem;
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.36em;
+    color: var(--pearl);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.85;
+  }
+  .locked-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.24em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 8px;
+    transition: opacity 0.5s ease;
+  }
+  .locked-tag.hidden { opacity: 0; height: 0; margin: 0; pointer-events: none; }
+
+  .album-name .sep {
+    display: inline-block;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--coral);
+    margin: 0 0.7em;
+    transform: translateY(-2px);
+  }
+
+  /* TITLE — bloom from dots */
+  .title-stage {
+    position: relative;
+    height: 1.9em;
+    margin: 6px 0 4px;
+    perspective: 600px;
+  }
+  .title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--cream);
-    transition: color 0.6s ease;
-  }
-
-  .track-title.unlocked { color: var(--orange); }
-
-  /* Solari board tiles — no box, letters only */
-  .tile {
-    display: inline-flex;
-    align-items: center;
+    line-height: 1;
+    display: flex;
     justify-content: center;
-    width: 1.35ch;
-    height: 1.8em;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .title.unlocked { color: var(--cream); }
+
+  .ch {
+    position: relative;
+    display: inline-block;
+    width: 1ch;
+    text-align: center;
+    line-height: 1;
+  }
+  .ch.space { width: 0.5ch; }
+  .ch .glyph {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+    transition: opacity 0.6s ease, transform 0.7s cubic-bezier(.2,.8,.2,1);
+  }
+  .ch.bloom .glyph {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .ch::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--pearl);
+    transform: translate(-50%, -50%) scale(1);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    box-shadow: 0 0 6px rgba(164,214,201,0.45);
+    animation: budPulse 3.4s ease-in-out infinite;
+  }
+  .ch.space::before { display: none; }
+  .ch:nth-child(3n)::before  { background: var(--vine); box-shadow: 0 0 6px rgba(47,143,63,0.55); animation-delay: -0.8s; }
+  .ch:nth-child(4n)::before  { background: var(--sky);  box-shadow: 0 0 6px rgba(91,163,208,0.55); animation-delay: -1.6s; }
+  .ch:nth-child(5n)::before  { background: var(--coral);box-shadow: 0 0 6px rgba(229,91,79,0.55);  animation-delay: -2.4s; }
+  .ch.bloom::before {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.2);
   }
 
-  .tile.space { width: 0.7ch; }
-
-  @keyframes flap {
-    0%   { transform: rotateX(0deg);   }
-    49%  { transform: rotateX(-90deg); }
-    51%  { transform: rotateX(90deg);  }
-    100% { transform: rotateX(0deg);   }
+  @keyframes budPulse {
+    0%,100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1);    }
+    50%     { opacity: 1;   transform: translate(-50%, -50%) scale(1.4);  }
   }
 
-  .track-artist {
-    font-size: 0.75rem;
-    font-weight: 300;
-    letter-spacing: 0.15em;
-    color: var(--gold);
-    margin-top: 4px;
+  .artist-line {
+    margin-top: 14px;
+    font-size: 0.62rem;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    color: var(--muted);
     text-transform: uppercase;
   }
 
-  /* Pre-save button */
+  /* Player */
+  .player-wrap {
+    width: min(76vw, 360px);
+    margin-top: 22px;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.9s ease 0.6s, transform 0.9s ease 0.6s;
+    min-height: 0;
+  }
+  .player-wrap.visible { opacity: 1; transform: translateY(0); }
+  .now-playing-label {
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    color: var(--pearl);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-align: center;
+    opacity: 0.85;
+  }
+  .player-wrap iframe {
+    width: 100%;
+    border-radius: 8px;
+    border: none;
+    display: block;
+    box-shadow: 0 0 0 1px rgba(164,214,201,0.18), 0 8px 28px rgba(0,0,0,0.55);
+  }
+
+  /* Pre-save */
   .presave-wrap {
+    margin-top: 18px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
     opacity: 0;
-    transform: translateY(12px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-    margin-top: 8px;
+    transform: translateY(10px);
+    transition: opacity 0.8s ease 1.6s, transform 0.8s ease 1.6s;
   }
-
-  .presave-wrap.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
+  .presave-wrap.visible { opacity: 1; transform: translateY(0); }
   .presave-label {
-    font-size: 0.58rem;
-    letter-spacing: 0.22em;
-    color: var(--gold);
+    font-size: 0.55rem;
+    letter-spacing: 0.26em;
+    color: var(--pearl);
     text-transform: uppercase;
     opacity: 0.75;
   }
-
   .btn-presave {
     background: transparent;
     color: var(--cream);
-    border: 1px solid rgba(245,237,216,0.35);
-    padding: 13px 32px;
+    border: 1px solid var(--hairline);
+    padding: 12px 28px;
     font-family: inherit;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 500;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     cursor: pointer;
     border-radius: 2px;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s, border-color 0.2s;
     text-decoration: none;
     display: inline-block;
   }
+  .btn-presave:hover { background: rgba(242,234,184,0.06); border-color: var(--cream); }
 
-  .btn-presave:hover, .btn-presave:active {
-    background: rgba(245,237,216,0.08);
-    border-color: var(--cream);
-  }
-
-  /* Player embed area */
-  .player-wrap {
-    width: min(72vw, 340px);
-    margin-top: 24px;
+  /* Bud grid — 14 tiles */
+  .grid-wrap {
+    width: min(76vw, 360px);
+    margin-top: 32px;
     opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.9s ease 1.1s, transform 0.9s ease 1.1s;
-    min-height: 80px;
-    position: relative;
+    transform: translateY(10px);
+    transition: opacity 0.8s ease 2.2s, transform 0.8s ease 2.2s;
   }
-
-  .now-playing-label {
+  .grid-wrap.visible { opacity: 1; transform: translateY(0); }
+  .grid-head {
     display: flex;
-    justify-content: center;
-    gap: 2px;
-    font-size: 0.6rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    color: var(--gold);
-    margin-bottom: 10px;
-    opacity: 0.75;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.55rem;
+    letter-spacing: 0.26em;
+    color: var(--pearl);
     text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.85;
   }
+  .grid-head .count { color: var(--cream); font-weight: 500; }
+  .grid-head .count .num { color: var(--coral); }
 
-  .player-wrap.visible {
-    opacity: 1;
-    transform: translateY(0);
+  .bud-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
   }
-
-  .player-wrap iframe {
-    width: 100%;
-    border-radius: 12px;
-    border: none;
-    display: block;
-    box-shadow: 0 0 0 1px rgba(212,168,67,0.18), 0 8px 32px rgba(0,0,0,0.55);
+  .bud {
+    aspect-ratio: 1 / 1;
+    background: var(--bg-soft);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
   }
+  .bud .seed {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: budPulse 3.6s ease-in-out infinite;
+  }
+  .bud:nth-child(2n) .seed { animation-delay: -1s; background: rgba(91,163,208,0.55); }
+  .bud:nth-child(3n) .seed { animation-delay: -2s; background: rgba(47,143,63,0.6);   }
+  .bud:nth-child(5n) .seed { animation-delay: -2.6s; background: rgba(229,91,79,0.55); }
+  .bud.unlocked {
+    border-color: var(--cream);
+    background: linear-gradient(135deg, rgba(229,91,79,0.18), rgba(47,143,63,0.18));
+  }
+  .bud.unlocked .seed {
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--cream) 0%, var(--sun) 40%, var(--coral) 80%);
+    animation: bloomedPulse 4s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(240,138,62,0.5);
+  }
+  @keyframes bloomedPulse {
+    0%,100% { transform: scale(1);    filter: brightness(1); }
+    50%     { transform: scale(1.06); filter: brightness(1.15); }
+  }
+  .bud-num {
+    position: absolute;
+    top: 4px; left: 5px;
+    font-size: 0.42rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .bud.unlocked .bud-num { color: var(--cream); }
 
-  /* CTA button */
+  .grid-footer {
+    margin-top: 12px;
+    font-size: 0.55rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.7;
+  }
+  .grid-footer .live { color: var(--pearl); }
+
+  /* CTA */
   .cta-wrap {
-    margin-top: 28px;
+    margin-top: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+    width: min(76vw, 360px);
     transition: opacity 0.5s ease;
   }
-
   .cta-wrap.hidden {
     opacity: 0;
     pointer-events: none;
-    position: absolute;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
   }
-
   .btn-locate {
-    background: var(--orange);
+    background: var(--coral);
     color: var(--cream);
     border: none;
-    padding: 14px 36px;
+    padding: 14px 30px;
     font-family: inherit;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     cursor: pointer;
     border-radius: 2px;
     transition: background 0.2s, transform 0.1s;
     -webkit-tap-highlight-color: transparent;
+    width: 100%;
+    max-width: 280px;
   }
-
   .btn-locate:active { transform: scale(0.97); }
-  .btn-locate:hover { background: #d45510; }
-  .btn-locate:disabled { background: #5a2f10; cursor: default; }
+  .btn-locate:hover { background: #d04b40; }
+  .btn-locate:disabled { background: #6b322d; cursor: default; }
 
-  /* Status message */
   .status {
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    color: var(--gold);
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    color: var(--pearl);
     text-transform: uppercase;
-    min-height: 18px;
+    min-height: 16px;
     text-align: center;
     opacity: 0;
     transition: opacity 0.4s ease;
   }
-
   .status.show { opacity: 1; }
 
-  /* City dots (decorative) */
-  .city-dots {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0.18;
+  .helper {
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.7;
+    max-width: 280px;
   }
 
-  .dot {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--teal);
-    box-shadow: 0 0 6px var(--teal);
-  }
-
-  .dot.active {
-    background: var(--orange);
-    box-shadow: 0 0 12px var(--orange);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(2.5); opacity: 0.5; }
-  }
-
-  /* Scanning animation */
-  @keyframes scan {
-    0% { opacity: 0.3; }
-    50% { opacity: 1; }
-    100% { opacity: 0.3; }
-  }
-
+  @keyframes scan { 0% { opacity: 0.35; } 50% { opacity: 1; } 100% { opacity: 0.35; } }
   .scanning { animation: scan 1.4s ease-in-out infinite; }
 
   .btn-dev {
     background: transparent;
-    color: var(--teal);
-    border: 1px dashed var(--teal);
-    padding: 8px 20px;
+    color: var(--vine);
+    border: 1px dashed var(--vine);
+    padding: 7px 18px;
     font-family: inherit;
-    font-size: 0.7rem;
+    font-size: 0.62rem;
     font-weight: 400;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     cursor: pointer;
     border-radius: 2px;
-    margin-top: 4px;
+    margin-top: 8px;
     opacity: 0.7;
   }
 
-  /* ── Mobile: fit everything on one screen ─────────────────────────────────── */
-  @media (max-height: 960px) {
-    .scene          { padding: 16px 0 28px; }
-    .artwork-wrap   { width: min(52vw, 190px); }
-    .track-info     { margin-top: 8px; }
-    .track-title    { font-size: 1rem; }
-    .track-artist   { font-size: 0.68rem; }
-    .player-wrap    { margin-top: 12px; }
-    .now-playing-label { margin-bottom: 6px; }
-    .player-wrap iframe  { height: 155px !important; }
-    .presave-wrap   { margin-top: 6px; gap: 7px; }
-    .btn-presave    { padding: 10px 24px; font-size: 0.72rem; }
-    .presave-label  { font-size: 0.54rem; }
-    .cta-wrap       { margin-top: 18px; }
+  /* Closed state (after Friday) */
+  .closed-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: min(76vw, 360px);
+    margin-top: 60px;
+    text-align: center;
+    gap: 18px;
+  }
+  .closed-state.show { display: flex; }
+  .closed-mark {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--pearl);
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+  }
+  .closed-headline {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--cream);
+    line-height: 1.4;
+  }
+  .closed-sub {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Mobile fit */
+  @media (max-height: 820px) {
+    .scene { padding-top: 18px; padding-bottom: 36px; }
+    .artwork-wrap { width: min(58vw, 220px); }
+    .album-name { font-size: 0.55rem; }
+    .title { font-size: 1.25rem; }
+    .player-wrap { margin-top: 14px; }
+    .grid-wrap { margin-top: 22px; }
+    .header-row { margin-bottom: 18px; }
   }
 </style>
 </head>
 <body>
 
-<!-- Full-screen background artwork (revealed on unlock) -->
 <img id="bgArt" src="album-cover.jpg" alt="">
+<div class="pollen-layer" id="pollenLayer"></div>
 
-<!-- Decorative city dots -->
-<div class="city-dots" id="cityDots"></div>
-
-<div class="scene">
-  <div class="artwork-wrap">
-    <img class="artwork-img" id="artwork" src="album-cover.jpg" alt="World Is Mine">
+<!-- ========== LOCKED VIEW ========== -->
+<div class="view" id="lockedView">
+  <div class="header-row">
+    <span>Lane 8 + Friends · Cross Pollination II</span>
   </div>
 
-  <div class="track-info" id="trackInfo">
-    <div class="track-title" id="trackTitle"></div>
-    <div class="track-artist">Lane 8, Kasbo &amp; BJOERN</div>
+  <div class="artwork-wrap" id="lockedArtworkWrap">
+    <img class="artwork-img" src="album-cover.jpg" alt="Cross Pollination II">
   </div>
 
-  <div class="player-wrap" id="playerWrap"></div>
-
-  <div class="presave-wrap" id="presaveWrap">
-    <span class="presave-label">Out Apr 23</span>
-    <a class="btn-presave" href="https://tnh.ffm.to/worldismine" target="_blank" rel="noopener">Pre-save</a>
+  <div class="album-meta">
+    <div class="locked-tag">Awaiting your location</div>
+    <div class="title-stage">
+      <div class="title" id="lockedTitle"></div>
+    </div>
   </div>
 
-  <div class="cta-wrap hidden" id="ctaWrap">
+  <div class="cta-wrap" id="ctaWrap" style="margin-top: 32px;">
     <button class="btn-locate" id="btnLocate" onclick="checkLocation()">Find my location</button>
     <div class="status" id="status"></div>
-    <button class="btn-dev" id="btnDev" onclick="unlock('Dev')" style="display:none">⚡ Dev unlock</button>
+    <button class="btn-dev" id="btnDev" onclick="devUnlock()" style="display:none">⚡ Dev unlock</button>
   </div>
+</div>
+
+<!-- ========== UNLOCKED VIEW ========== -->
+<div class="view hidden" id="unlockedView">
+  <div class="header-row">
+    <span>Lane 8 + Friends · Cross Pollination II</span>
+  </div>
+
+  <div class="artwork-wrap unlocked zooming" id="artworkWrap">
+    <img class="map-img" id="artwork" src="album-cover.jpg" alt="Cross Pollination II">
+    <div class="hotspot-pulse"></div>
+    <div class="hotspot-ring"></div>
+  </div>
+
+  <div class="album-meta">
+    <div class="title-stage">
+      <div class="title unlocked" id="title"></div>
+    </div>
+    <div class="artist-line" id="artistLine">Lane 8 + Friends</div>
+  </div>
+
+  <div class="player-wrap visible" id="playerWrap"></div>
+
+  <div class="presave-wrap visible" id="presaveWrap">
+    <a class="btn-presave" href="https://tnh.ffm.to/crosspoll" target="_blank" rel="noopener">Pre-save album</a>
+  </div>
+
+  <div class="grid-wrap visible" id="gridWrap">
+    <div class="grid-head">
+      <span id="yourCity">The Garden</span>
+    </div>
+    <div class="bud-grid" id="budGrid"></div>
+    <div class="grid-footer">
+      <span class="live" id="liveCount">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- Closed state — after window ends -->
+<div class="closed-state" id="closedState">
+  <div class="closed-mark">×</div>
+  <div class="closed-headline">The window has closed.</div>
+  <div class="closed-sub">Cross Pollination II is out everywhere</div>
+  <a class="btn-presave" href="https://tnh.ffm.to/crosspoll" target="_blank" rel="noopener" style="margin-top:8px">Listen on streaming</a>
 </div>
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const CONFIG = {
-  trackTitleLocked: "World Is Mine",
-  trackTitleUnlocked: "World Is Mine",
-  artist: "Lane 8, Kasbo & BJOERN",
+  // Active window — Mon 9 Jun – Fri 13 Jun 2026, all day local-ish
+  windowStart: new Date('2026-06-09T00:00:00'),
+  windowEnd:   new Date('2026-06-13T23:59:59'),
 
-  // Paste your SoundCloud private share embed or Spotify embed HTML here
-  // SoundCloud example: '<iframe width="100%" height="166" allow="autoplay" src="https://w.soundcloud.com/player/?url=...&auto_play=true&color=%23E8621A"></iframe>'
-  // Spotify example:    '<iframe src="https://open.spotify.com/embed/track/..." height="80" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>'
-  embedHTML: `<iframe style="border-radius: 12px; color-scheme: dark;" src="https://untitled.stream/embed/MOhK7m3fRDEL?theme=dark&bg=1a0e06&color=e8621a" width="100%" height="344" allowFullScreen="" allow="picture-in-picture" frameborder="0" loading="eager"></iframe>`,
+  // Force-bypass the date check while developing
+  bypassDateCheck: true,
 
-  // Unlock zones — lat, lng, radius in metres
-  // NOTE: radii set large for city-wide testing — tighten to 300 before campaign launch
-  zones: [
-    { city: "Washington Park", lat: 39.7002, lng: -104.9687, radius: 650 },
-    { city: "Vitabergsparken", lat: 59.310738, lng: 18.088962, radius: 400 },
-  ]
+  artist: 'Lane 8 + Friends',
+  albumName: 'Cross Pollination II',
+
+  // Default locked title — what shows before unlock
+  lockedTitle: 'Cross Pollination II',
+
+  // Track <-> city/zone map. PLACEHOLDERS — plug in real coords + spotify ids.
+  tracks: [
+    { id: 1,  title: 'Disappear',                 collaborators: 'Sultan + Shepard, sadHAPPY', city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 2,  title: 'Penguin Parade',            collaborators: 'Robby East',                 city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 3,  title: 'Sol',                       collaborators: 'Cornelius SA, Alan Green',   city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 4,  title: 'World Is Mine',             collaborators: 'Kasbo, BJOERN',              city: 'Denver',          lat: 39.7002, lng: -104.9687, radius: 650, hotspot: { x: 0.34, y: 0.24 }, embed: '<iframe style="border-radius:8px;" src="https://untitled.stream/embed/MOhK7m3fRDEL?theme=dark&bg=0d0a14&color=e55b4f" width="100%" height="180" allowFullScreen="" allow="picture-in-picture" frameborder="0" loading="eager"></iframe>' },
+    { id: 5,  title: 'World Is Mine (Reprise)',   collaborators: 'Kasbo, BJOERN',              city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 6,  title: 'Maglia Rosa',               collaborators: 'Grigoré',                    city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 7,  title: 'The Doubt',                 collaborators: 'Gui Boratto, Jyll',          city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 8,  title: 'Something In The Air',      collaborators: 'Rae Morris',                 city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 9,  title: 'Candy',                     collaborators: 'Quentin Quivera',            city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 10, title: 'Empty Theatre, Pretty Picture', collaborators: 'Davey Havok',            city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 11, title: 'Adelie',                    collaborators: 'MYRNE',                      city: 'Vitabergsparken', lat: 59.310738, lng: 18.088962, radius: 400, embed: '' },
+    { id: 12, title: 'Pulsar',                    collaborators: 'Teho',                       city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 13, title: 'Purple Pepper',             collaborators: 'PARIS',                      city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+    { id: 14, title: 'Tripwires',                 collaborators: 'Massane, barking continues', city: 'PLACEHOLDER',     lat: 0, lng: 0, radius: 400, embed: '' },
+  ],
+
+  // Default embed used for any track without its own embed (placeholder)
+  defaultEmbed: '<iframe style="border-radius: 8px; color-scheme: dark;" src="https://untitled.stream/embed/MOhK7m3fRDEL?theme=dark&bg=0d0a14&color=e55b4f" width="100%" height="180" allowFullScreen="" allow="picture-in-picture" frameborder="0" loading="eager"></iframe>',
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Dev mode — append ?dev to the URL to show the bypass button
+// ── Date check ───────────────────────────────────────────────────────────────
+(function checkWindow(){
+  if (CONFIG.bypassDateCheck) return;
+  const now = new Date();
+  if (now < CONFIG.windowStart || now > CONFIG.windowEnd) {
+    document.getElementById('lockedView').style.display = 'none';
+    document.getElementById('unlockedView').style.display = 'none';
+    document.getElementById('closedState').classList.add('show');
+  }
+})();
+
+// Dev mode
 if (new URLSearchParams(window.location.search).has('dev')) {
   document.getElementById('btnDev').style.display = 'block';
 }
 
-// Render title as tiles showing correct chars immediately
-function renderTitle(el, text) {
-  const upper = text.toUpperCase();
-  el.style.perspective = '400px';
-  el.innerHTML = upper.split('').map(c =>
-    c === ' '
-      ? '<span class="tile space">\u00a0</span>'
-      : `<span class="tile" data-char="${c}">${c}</span>`
-  ).join('');
-}
-
-// Flip a tile to a random char then back to its real char
-function flipTile(tile) {
-  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const orig = tile.dataset.char;
-  const rnd  = CHARS[Math.floor(Math.random() * CHARS.length)];
-
-  function doFlip(nextChar, then) {
-    tile.style.animation = 'none';
-    void tile.offsetWidth;
-    tile.style.animation = 'flap 0.13s linear';
-    setTimeout(() => { tile.textContent = nextChar; }, 65);
-    tile.addEventListener('animationend', () => { tile.style.animation = ''; then(); }, { once: true });
-  }
-
-  doFlip(rnd, () => doFlip(orig, () => { tile.textContent = orig; }));
-}
-
-// Randomly flip individual letters on a slow idle loop; returns a stop fn
-function idleFlap(el) {
-  let stopped = false;
-  function loop() {
-    if (stopped) return;
-    const tiles = [...el.querySelectorAll('.tile:not(.space):not([data-busy])')];
-    if (tiles.length) {
-      const tile = tiles[Math.floor(Math.random() * tiles.length)];
-      tile.dataset.busy = '1';
-      flipTile(tile);
-      setTimeout(() => delete tile.dataset.busy, 400);
-    }
-    setTimeout(loop, 900 + Math.random() * 1400);
-  }
-  setTimeout(loop, 600 + Math.random() * 800);
-  return () => { stopped = true; };
-}
-
-const titleEl = document.getElementById('trackTitle');
-renderTitle(titleEl, CONFIG.trackTitleLocked);
-const stopTitleFlap = idleFlap(titleEl);
-
-// Decorative city dots (approximate screen positions — purely aesthetic)
-const dotPositions = [
-  {x: 48, y: 35}, {x: 22, y: 28}, {x: 15, y: 42},
-  {x: 72, y: 55}, {x: 85, y: 68}, {x: 62, y: 22},
-  {x: 35, y: 65}, {x: 78, y: 30}, {x: 55, y: 80},
-  {x: 10, y: 60}, {x: 90, y: 45}, {x: 42, y: 15},
-];
-const dotsEl = document.getElementById('cityDots');
-dotPositions.forEach((p, i) => {
-  const d = document.createElement('div');
-  d.className = 'dot';
-  d.style.left = p.x + '%';
-  d.style.top = p.y + '%';
-  dotsEl.appendChild(d);
+// AUTO-UNLOCK for preview — picks the hardwired World Is Mine track
+const _isPreview = new URLSearchParams(window.location.search).has('dev')
+               || window.location.hostname === 'localhost'
+               || window.location.hostname === ''
+               || window.location.protocol === 'file:'
+               || window.self !== window.top;
+window.addEventListener('load', () => {
+  if (!_isPreview) return;
+  setTimeout(() => {
+    const t = CONFIG.tracks.find(x => x.title === 'World Is Mine') || CONFIG.tracks[0];
+    unlockTrack(t);
+  }, 600);
 });
 
-// Haversine distance in metres
+// ── Title bloom rendering ────────────────────────────────────────────────────
+function renderTitle(text) {
+  const el = document.getElementById('title');
+  el.innerHTML = '';
+  text.toUpperCase().split('').forEach((c) => {
+    const span = document.createElement('span');
+    span.className = 'ch' + (c === ' ' ? ' space' : '');
+    if (c === ' ') {
+      span.innerHTML = '<span class="glyph">&nbsp;</span>';
+    } else {
+      span.innerHTML = '<span class="glyph">' + c + '</span>';
+    }
+    el.appendChild(span);
+  });
+  return el;
+}
+function bloomTitle(delayPerLetter = 65) {
+  const chars = document.querySelectorAll('#title .ch');
+  chars.forEach((ch, i) => {
+    setTimeout(() => ch.classList.add('bloom'), i * delayPerLetter);
+  });
+}
+
+// Locked-view title — small row of buds
+function renderLockedBuds() {
+  const el = document.getElementById('lockedTitle');
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const span = document.createElement('span');
+    span.className = 'ch';
+    span.innerHTML = '<span class="glyph">&nbsp;</span>';
+    el.appendChild(span);
+  }
+}
+renderLockedBuds();
+
+// ── Bud grid ────────────────────────────────────────────────────────────────
+function renderBudGrid(unlockedId = null) {
+  const grid = document.getElementById('budGrid');
+  grid.innerHTML = '';
+  CONFIG.tracks.forEach((t) => {
+    const b = document.createElement('div');
+    b.className = 'bud' + (unlockedId === t.id ? ' unlocked' : '');
+    b.innerHTML = '<span class="bud-num">' + String(t.id).padStart(2, '0') + '</span><div class="seed"></div>';
+    if (unlockedId === t.id) {
+      b.title = t.title;
+    }
+    grid.appendChild(b);
+  });
+}
+renderBudGrid();
+
+// ===== Pollen drift layer =====
+(function spawnPollen() {
+  const layer = document.getElementById('pollenLayer');
+  if (!layer) return;
+  const palette = [
+    'rgba(242,234,184,0.9)',  // cream
+    'rgba(164,214,201,0.85)', // pearl
+    'rgba(91,163,208,0.75)',  // sky
+    'rgba(229,91,79,0.75)',   // coral
+    'rgba(240,138,62,0.8)',   // sun
+  ];
+  const COUNT = 28;
+  for (let i = 0; i < COUNT; i++) {
+    const p = document.createElement('div');
+    p.className = 'pollen';
+    const color = palette[Math.floor(Math.random() * palette.length)];
+    const size = 3 + Math.random() * 6;
+    const dur = 14 + Math.random() * 18;
+    const delay = -Math.random() * dur;
+    const left = Math.random() * 100;
+    const mx = (Math.random() - 0.5) * 80;
+    const ex = (Math.random() - 0.5) * 140;
+    const peak = 0.35 + Math.random() * 0.45;
+    p.style.left = left + 'vw';
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.background = color;
+    p.style.boxShadow = '0 0 ' + (size * 1.6) + 'px ' + color;
+    p.style.animationDuration = dur + 's';
+    p.style.animationDelay = delay + 's';
+    p.style.setProperty('--mx', mx + 'px');
+    p.style.setProperty('--ex', ex + 'px');
+    p.style.setProperty('--peak', peak);
+    layer.appendChild(p);
+  }
+})();
+
+// Live counter — fake a slowly-rising number for now
+(function liveCounter(){
+  const el = document.getElementById('liveCount');
+  let base = 23 + Math.floor(Math.random() * 14);
+  function tick(){
+    const drift = Math.floor(Math.random() * 5) - 2;
+    base = Math.max(8, base + drift);
+    el.textContent = base + ' listening now';
+  }
+  tick();
+  setInterval(tick, 4500);
+})();
+
+// ── Geo ──────────────────────────────────────────────────────────────────────
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+  const a = Math.sin(dLat/2)**2 +
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
+            Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
@@ -509,18 +962,18 @@ function setStatus(msg, show = true) {
   el.classList.toggle('show', show);
 }
 
-// ── Tier 1: continuous geo-watch + access revocation ─────────────────────────
-let _watchId    = null;
+let _watchId = null;
 let _isUnlocked = false;
+let _activeTrack = null;
 
 function startWatching() {
-  if (!navigator.geolocation || _watchId !== null) return;
+  if (!navigator.geolocation || _watchId !== null || !_activeTrack) return;
   _watchId = navigator.geolocation.watchPosition(
     (pos) => {
       if (!_isUnlocked) return;
       const { latitude: lat, longitude: lng } = pos.coords;
-      const stillIn = CONFIG.zones.some(z => haversine(lat, lng, z.lat, z.lng) <= z.radius);
-      if (!stillIn) revoke();
+      const dist = haversine(lat, lng, _activeTrack.lat, _activeTrack.lng);
+      if (dist > _activeTrack.radius) revoke();
     },
     null,
     { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
@@ -529,88 +982,94 @@ function startWatching() {
 
 function revoke() {
   _isUnlocked = false;
+  _activeTrack = null;
 
-  // Kill the player
-  const playerWrap = document.getElementById('playerWrap');
-  playerWrap.innerHTML = '';
-  playerWrap.classList.remove('visible');
+  // Reset zoom
+  const wrap = document.getElementById('artworkWrap');
+  if (wrap) wrap.classList.remove('zoom-in');
 
-  // Hide pre-save button
-  document.getElementById('presaveWrap').classList.remove('visible');
+  // Swap back to locked view
+  document.getElementById('unlockedView').classList.add('hidden');
+  document.getElementById('lockedView').classList.remove('hidden');
 
-  // Re-show locate button
-  const ctaWrap = document.getElementById('ctaWrap');
-  ctaWrap.classList.remove('hidden');
+  document.getElementById('playerWrap').innerHTML = '';
+  document.getElementById('artistLine').textContent = CONFIG.artist;
+
+  renderLockedBuds();
+  renderBudGrid();
+
   const btn = document.getElementById('btnLocate');
-  btn.disabled    = false;
+  btn.disabled = false;
   btn.textContent = 'Find my location';
-
-  // Hide artwork background + restore artwork to greyscale
-  document.getElementById('bgArt').classList.remove('visible');
-  document.getElementById('artwork').classList.remove('unlocked');
-  document.getElementById('trackTitle').classList.remove('unlocked');
-
-  setStatus('Thanks for listening.');
+  setStatus('', false);
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
-function unlock(cityName) {
-  // Light up that city's dot (first one matching)
-  const dots = dotsEl.querySelectorAll('.dot');
-  if (dots.length) dots[Math.floor(Math.random() * dots.length)].classList.add('active');
-
-  // Reveal artwork
-  document.getElementById('artwork').classList.add('unlocked');
-
-  // Stop title idle flap, turn orange
-  stopTitleFlap();
-  setTimeout(() => {
-    document.getElementById('trackTitle').classList.add('unlocked');
-  }, 800);
-
-  // Reveal full-screen artwork background
-  setTimeout(() => {
-    document.getElementById('bgArt').classList.add('visible');
-  }, 600);
-
-  // Inject player with NOW PLAYING label
-  const playerWrap = document.getElementById('playerWrap');
-  const labelEl = document.createElement('div');
-  labelEl.className = 'now-playing-label';
-  playerWrap.appendChild(labelEl);
-  playerWrap.insertAdjacentHTML('beforeend', CONFIG.embedHTML);
-  playerWrap.classList.add('visible');
-  renderTitle(labelEl, 'Now Playing');
-  idleFlap(labelEl);
-
-  // Reveal pre-save button after artwork has had its moment
-  setTimeout(() => {
-    document.getElementById('presaveWrap').classList.add('visible');
-  }, 2800);
-
-  // Mark as unlocked and start continuous geo-watch
+function unlockTrack(track) {
+  _activeTrack = track;
   _isUnlocked = true;
+
+  // Transition between views
+  const lockedView = document.getElementById('lockedView');
+  const unlockedView = document.getElementById('unlockedView');
+
+  lockedView.classList.add('hidden');
+  unlockedView.classList.remove('hidden');
+  unlockedView.classList.add('entering');
+  // force reflow then animate in
+  void unlockedView.offsetWidth;
+  unlockedView.classList.remove('entering');
+
+  // ===== Map-zoom: pan/zoom artwork toward the city's hotspot =====
+  const wrap = document.getElementById('artworkWrap');
+  const hot = track.hotspot || { x: 0.5, y: 0.35 };
+  // express hotspot as percent for transform-origin
+  wrap.style.setProperty('--hx', (hot.x * 100) + '%');
+  wrap.style.setProperty('--hy', (hot.y * 100) + '%');
+  wrap.style.setProperty('--zoom', (hot.zoom || 1.8));
+  // reset then trigger
+  wrap.classList.remove('zoom-in');
+  void wrap.offsetWidth;
+  setTimeout(() => wrap.classList.add('zoom-in'), 600);
+
+  // Render and bloom the track title (after the zoom lands)
+  renderTitle(track.title);
+  setTimeout(() => bloomTitle(120), 3200);
+
+  // Update artist line to the collaborator credit
+  document.getElementById('artistLine').textContent = 'Lane 8, ' + track.collaborators;
+
+  // Inject player
+  const playerWrap = document.getElementById('playerWrap');
+  playerWrap.innerHTML = (track.embed || CONFIG.defaultEmbed);
+
+  // Bud grid
+  renderBudGrid(track.id);
+  const yc = document.getElementById('yourCity');
+  if (yc && track.city) yc.textContent = track.city;
+
+  // Watch
   startWatching();
-
-  // Revoke if user backgrounds the page or locks their screen
-  document.addEventListener('visibilitychange', () => {
-    if (_isUnlocked && document.hidden) revoke();
-  }, { once: true });
-
-  // Hide CTA
-  document.getElementById('ctaWrap').classList.add('hidden');
+  if (!_isPreview) {
+    document.addEventListener('visibilitychange', () => {
+      if (_isUnlocked && document.hidden) revoke();
+    }, { once: true });
+  }
 
   setStatus('');
 }
 
+function devUnlock() {
+  // Pick a random non-placeholder track for preview, fallback to track #4
+  const t = CONFIG.tracks.find(x => x.title === 'World Is Mine') || CONFIG.tracks[0];
+  unlockTrack(t);
+}
+
 function checkLocation() {
   const btn = document.getElementById('btnLocate');
-
   if (!navigator.geolocation) {
     setStatus('Geolocation not supported on this device.');
     return;
   }
-
   btn.disabled = true;
   btn.classList.add('scanning');
   btn.textContent = 'Locating…';
@@ -620,16 +1079,14 @@ function checkLocation() {
     (pos) => {
       btn.classList.remove('scanning');
       const { latitude: lat, longitude: lng } = pos.coords;
-
-      for (const zone of CONFIG.zones) {
-        const dist = haversine(lat, lng, zone.lat, zone.lng);
-        if (dist <= zone.radius) {
-          unlock(zone.city);
+      for (const t of CONFIG.tracks) {
+        if (!t.lat) continue;
+        const dist = haversine(lat, lng, t.lat, t.lng);
+        if (dist <= t.radius) {
+          unlockTrack(t);
           return;
         }
       }
-
-      // Not in any zone
       btn.disabled = false;
       btn.textContent = 'Find my location';
       setStatus('Not there yet. Find the right place.');
@@ -638,7 +1095,6 @@ function checkLocation() {
       btn.classList.remove('scanning');
       btn.disabled = false;
       btn.textContent = 'Find my location';
-
       const msgs = {
         1: 'Location access denied. Enable it in your browser settings.',
         2: 'Position unavailable. Try again outside.',
