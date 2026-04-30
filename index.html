@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Cross Pollination II — Lane 8</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
@@ -195,48 +197,6 @@
     animation: drift 16s ease-in-out infinite, bloomPulse 2.4s ease-out;
     filter: saturate(1.18) brightness(1.08);
   }
-
-  /* Map-zoom: the unlocked artwork pans/zooms to the city hotspot */
-  .artwork-wrap.zooming {
-    overflow: hidden;
-  }
-  .artwork-wrap .map-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform-origin: var(--hx, 50%) var(--hy, 50%);
-    transition: transform 4.5s cubic-bezier(.4,0,.2,1), filter 3.6s ease;
-    will-change: transform, filter;
-  }
-  .artwork-wrap.zoom-in .map-img {
-    transform: scale(var(--zoom, 1.8));
-    filter: saturate(1.15) brightness(1.04);
-  }
-  /* Hotspot bloom over the city's spot */
-  .hotspot-pulse {
-    position: absolute;
-    width: 32%;
-    height: 32%;
-    left: var(--hx, 50%);
-    top: var(--hy, 50%);
-    transform: translate(-50%, -50%) scale(0);
-    border-radius: 50%;
-    pointer-events: none;
-    background: radial-gradient(circle,
-                rgba(242,234,184,0.9) 0%,
-                rgba(229,91,79,0.5) 30%,
-                transparent 70%);
-    mix-blend-mode: screen;
-    opacity: 0;
-    z-index: 3;
-  }
-  .artwork-wrap.zoom-in .hotspot-pulse {
-    animation: hotspotBloom 4.6s ease-out 2.6s forwards;
-  }
-  @keyframes hotspotBloom {
-    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0); }
     40%  { opacity: 0.7; transform: translate(-50%, -50%) scale(1.2); }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
   }
@@ -257,7 +217,21 @@
     inset: 0;
     box-shadow: inset 0 0 80px rgba(13,10,20,0.55);
     pointer-events: none;
+    z-index: 5;
   }
+
+  /* Leaflet map blended over artwork */
+  #mapOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 2.5s ease 1s;
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+  #mapOverlay.visible { opacity: 0.7; }
+  #mapOverlay .leaflet-tile-pane { filter: saturate(0.6) brightness(0.85); }
 
   /* Bud-glow overlay — appears only on unlock */
   .bud-glow {
@@ -318,71 +292,25 @@
     transform: translateY(-2px);
   }
 
-  /* TITLE — bloom from dots */
+  /* TITLE */
   .title-stage {
-    position: relative;
-    height: 1.9em;
     margin: 6px 0 4px;
-    perspective: 600px;
   }
   .title {
-    font-size: 1.6rem;
+    font-size: 1.45rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--cream);
     line-height: 1;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0;
-  }
-  .title.unlocked { color: var(--cream); }
-
-  .ch {
-    position: relative;
-    display: inline-block;
-    width: 1ch;
     text-align: center;
-    line-height: 1;
-  }
-  .ch.space { width: 0.5ch; }
-  .ch .glyph {
-    display: inline-block;
     opacity: 0;
-    transform: translateY(8px) scale(0.6);
-    transition: opacity 0.6s ease, transform 0.7s cubic-bezier(.2,.8,.2,1);
+    transform: translateY(6px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
   }
-  .ch.bloom .glyph {
+  .title.bloom {
     opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  .ch::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--pearl);
-    transform: translate(-50%, -50%) scale(1);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    box-shadow: 0 0 6px rgba(164,214,201,0.45);
-    animation: budPulse 3.4s ease-in-out infinite;
-  }
-  .ch.space::before { display: none; }
-  .ch:nth-child(3n)::before  { background: var(--vine); box-shadow: 0 0 6px rgba(47,143,63,0.55); animation-delay: -0.8s; }
-  .ch:nth-child(4n)::before  { background: var(--sky);  box-shadow: 0 0 6px rgba(91,163,208,0.55); animation-delay: -1.6s; }
-  .ch:nth-child(5n)::before  { background: var(--coral);box-shadow: 0 0 6px rgba(229,91,79,0.55);  animation-delay: -2.4s; }
-  .ch.bloom::before {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(2.2);
-  }
-
-  @keyframes budPulse {
-    0%,100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1);    }
-    50%     { opacity: 1;   transform: translate(-50%, -50%) scale(1.4);  }
+    transform: translateY(0);
   }
 
   .artist-line {
@@ -623,9 +551,9 @@
     <span>Lane 8 + Friends · Cross Pollination II</span>
   </div>
 
-  <div class="artwork-wrap unlocked zooming" id="artworkWrap">
-    <img class="map-img" id="artwork" src="album-cover.jpg" alt="Cross Pollination II">
-    <div class="hotspot-pulse"></div>
+  <div class="artwork-wrap" id="artworkWrap">
+    <img class="artwork-img" id="artwork" src="album-cover.jpg" alt="Cross Pollination II">
+    <div id="mapOverlay"></div>
   </div>
 
   <div class="album-meta">
@@ -722,37 +650,16 @@ window.addEventListener('load', () => {
 // ── Title bloom rendering ────────────────────────────────────────────────────
 function renderTitle(text) {
   const el = document.getElementById('title');
-  el.innerHTML = '';
-  text.toUpperCase().split('').forEach((c) => {
-    const span = document.createElement('span');
-    span.className = 'ch' + (c === ' ' ? ' space' : '');
-    if (c === ' ') {
-      span.innerHTML = '<span class="glyph">&nbsp;</span>';
-    } else {
-      span.innerHTML = '<span class="glyph">' + c + '</span>';
-    }
-    el.appendChild(span);
-  });
-  return el;
+  el.textContent = text.toUpperCase();
+  el.classList.remove('bloom');
 }
-function bloomTitle(delayPerLetter = 65) {
-  const chars = document.querySelectorAll('#title .ch');
-  chars.forEach((ch, i) => {
-    setTimeout(() => ch.classList.add('bloom'), i * delayPerLetter);
-  });
+function bloomTitle() {
+  setTimeout(() => document.getElementById('title').classList.add('bloom'), 50);
 }
 
 // Locked-view title — small row of buds
 function renderLockedBuds() {
-  const el = document.getElementById('lockedTitle');
-  if (!el) return;
-  el.innerHTML = '';
-  for (let i = 0; i < 9; i++) {
-    const span = document.createElement('span');
-    span.className = 'ch';
-    span.innerHTML = '<span class="glyph">&nbsp;</span>';
-    el.appendChild(span);
-  }
+  // nothing — locked title area stays empty
 }
 renderLockedBuds();
 
@@ -832,10 +739,10 @@ function revoke() {
   _isUnlocked = false;
   _activeTrack = null;
 
-  // Reset zoom
-  const wrap = document.getElementById('artworkWrap');
-  if (wrap) wrap.classList.remove('zoom-in');
+  // Hide map overlay
+  document.getElementById('mapOverlay').classList.remove('visible');
   document.getElementById('bgArt').classList.remove('visible');
+  document.getElementById('title').classList.remove('bloom');
 
   // Swap back to locked view
   document.getElementById('unlockedView').classList.add('hidden');
@@ -868,21 +775,47 @@ function unlockTrack(track) {
   void unlockedView.offsetWidth;
   unlockedView.classList.remove('entering');
 
-  // ===== Map-zoom: pan/zoom artwork toward the city's hotspot =====
-  const wrap = document.getElementById('artworkWrap');
-  const hot = track.hotspot || { x: 0.5, y: 0.35 };
-  // express hotspot as percent for transform-origin
-  wrap.style.setProperty('--hx', (hot.x * 100) + '%');
-  wrap.style.setProperty('--hy', (hot.y * 100) + '%');
-  wrap.style.setProperty('--zoom', (hot.zoom || 1.45));
-  // reset then trigger
-  wrap.classList.remove('zoom-in');
-  void wrap.offsetWidth;
-  setTimeout(() => wrap.classList.add('zoom-in'), 600);
-
-  // Render and bloom the track title (after the zoom lands)
+  // Render title and bloom in
   renderTitle(track.title);
-  setTimeout(() => bloomTitle(120), 3200);
+  setTimeout(() => bloomTitle(), 800);
+
+  // Init Leaflet map over the artwork
+  if (!window._map) {
+    window._map = L.map('mapOverlay', {
+      zoomControl: false,
+      attributionControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      tap: false,
+    });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 18,
+    }).addTo(window._map);
+  }
+
+  window._map.setView([track.lat || 39.7002, track.lng || -104.9687], 13);
+  window._map.invalidateSize();
+
+  setTimeout(() => {
+    window._map.flyTo([track.lat || 39.7002, track.lng || -104.9687], 15, {
+      duration: 4,
+      easeLinearity: 0.4,
+    });
+    if (window._marker) window._marker.remove();
+    window._marker = L.circleMarker([track.lat || 39.7002, track.lng || -104.9687], {
+      radius: 7,
+      fillColor: '#E55B4F',
+      color: '#F2EAB8',
+      weight: 2,
+      fillOpacity: 1,
+      className: 'location-pin'
+    }).addTo(window._map);
+    document.getElementById('mapOverlay').classList.add('visible');
+  }, 600);
 
   // Update artist line to the collaborator credit
   document.getElementById('artistLine').textContent = 'Lane 8, ' + track.collaborators;
