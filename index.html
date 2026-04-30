@@ -237,37 +237,6 @@
     40%  { opacity: 0.7; transform: translate(-50%, -50%) scale(1.2); }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
   }
-  /* Crosshair ring marking the city */
-  .hotspot-ring {
-    position: absolute;
-    width: 56px;
-    height: 56px;
-    left: var(--hx, 50%);
-    top: var(--hy, 50%);
-    transform: translate(-50%, -50%) scale(0);
-    border: 1.5px solid var(--cream);
-    border-radius: 50%;
-    pointer-events: none;
-    opacity: 0;
-    z-index: 4;
-    box-shadow: 0 0 24px rgba(242,234,184,0.4), inset 0 0 12px rgba(242,234,184,0.3);
-  }
-  .hotspot-ring::before, .hotspot-ring::after {
-    content: '';
-    position: absolute;
-    background: var(--cream);
-  }
-  .hotspot-ring::before {
-    left: 50%; top: -10px; bottom: -10px; width: 1px; transform: translateX(-50%);
-  }
-  .hotspot-ring::after {
-    top: 50%; left: -10px; right: -10px; height: 1px; transform: translateY(-50%);
-  }
-  .artwork-wrap.zoom-in .hotspot-ring {
-    animation: hotspotRing 4.8s ease-out 2.8s forwards;
-  }
-  @keyframes hotspotRing {
-    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0); }
     50%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.4); }
   }
@@ -448,6 +417,7 @@
     border: none;
     display: block;
     box-shadow: 0 0 0 1px rgba(164,214,201,0.18), 0 8px 28px rgba(0,0,0,0.55);
+    filter: invert(1) hue-rotate(180deg);
   }
 
   /* Pre-save */
@@ -490,15 +460,16 @@
   /* Bud grid — 14 tiles */
   .grid-wrap {
     width: min(76vw, 360px);
-    margin-top: 32px;
+    margin-top: 28px;
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.8s ease 2.2s, transform 0.8s ease 2.2s;
+    clear: both;
   }
   .grid-wrap.visible { opacity: 1; transform: translateY(0); }
   .grid-head {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: baseline;
     font-size: 0.55rem;
     letter-spacing: 0.26em;
@@ -738,7 +709,6 @@
   <div class="artwork-wrap unlocked zooming" id="artworkWrap">
     <img class="map-img" id="artwork" src="album-cover.jpg" alt="Cross Pollination II">
     <div class="hotspot-pulse"></div>
-    <div class="hotspot-ring"></div>
   </div>
 
   <div class="album-meta">
@@ -1025,7 +995,7 @@ function unlockTrack(track) {
   // express hotspot as percent for transform-origin
   wrap.style.setProperty('--hx', (hot.x * 100) + '%');
   wrap.style.setProperty('--hy', (hot.y * 100) + '%');
-  wrap.style.setProperty('--zoom', (hot.zoom || 1.8));
+  wrap.style.setProperty('--zoom', (hot.zoom || 1.45));
   // reset then trigger
   wrap.classList.remove('zoom-in');
   void wrap.offsetWidth;
