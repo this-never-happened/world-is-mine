@@ -459,91 +459,6 @@
     display: inline-block;
   }
   .btn-presave:hover { background: rgba(242,234,184,0.06); border-color: var(--cream); }
-
-  /* Bud grid — 14 tiles */
-  .grid-wrap {
-    width: min(76vw, 360px);
-    margin-top: 28px;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.8s ease 2.2s, transform 0.8s ease 2.2s;
-    clear: both;
-  }
-  .grid-wrap.visible { opacity: 1; transform: translateY(0); }
-  .grid-head {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    font-size: 0.55rem;
-    letter-spacing: 0.26em;
-    color: var(--pearl);
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    opacity: 0.85;
-  }
-  .grid-head .count { color: var(--cream); font-weight: 500; }
-  .grid-head .count .num { color: var(--coral); }
-
-  .bud-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-  }
-  .bud {
-    aspect-ratio: 1 / 1;
-    background: var(--bg-soft);
-    border: 1px solid var(--hairline);
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .bud .seed {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: var(--muted);
-    animation: budPulse 3.6s ease-in-out infinite;
-  }
-  .bud:nth-child(2n) .seed { animation-delay: -1s; background: rgba(91,163,208,0.55); }
-  .bud:nth-child(3n) .seed { animation-delay: -2s; background: rgba(47,143,63,0.6);   }
-  .bud:nth-child(5n) .seed { animation-delay: -2.6s; background: rgba(229,91,79,0.55); }
-  .bud.unlocked {
-    border-color: var(--cream);
-    background: linear-gradient(135deg, rgba(229,91,79,0.18), rgba(47,143,63,0.18));
-  }
-  .bud.unlocked .seed {
-    width: 70%;
-    height: 70%;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, var(--cream) 0%, var(--sun) 40%, var(--coral) 80%);
-    animation: bloomedPulse 4s ease-in-out infinite;
-    box-shadow: 0 0 10px rgba(240,138,62,0.5);
-  }
-  @keyframes bloomedPulse {
-    0%,100% { transform: scale(1);    filter: brightness(1); }
-    50%     { transform: scale(1.06); filter: brightness(1.15); }
-  }
-  .bud-num {
-    position: absolute;
-    top: 4px; left: 5px;
-    font-size: 0.42rem;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .bud.unlocked .bud-num { color: var(--cream); }
-
-  .grid-footer {
-    margin-top: 12px;
-    font-size: 0.55rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-align: center;
-    line-height: 1.7;
-  }
   .grid-footer .live { color: var(--pearl); }
 
   /* CTA */
@@ -669,7 +584,6 @@
     .album-name { font-size: 0.55rem; }
     .title { font-size: 1.25rem; }
     .player-wrap { margin-top: 14px; }
-    .grid-wrap { margin-top: 22px; }
     .header-row { margin-bottom: 18px; }
   }
 </style>
@@ -725,16 +639,6 @@
 
   <div class="presave-wrap visible" id="presaveWrap">
     <a class="btn-presave" href="https://tnh.ffm.to/crosspoll" target="_blank" rel="noopener">Pre-save album</a>
-  </div>
-
-  <div class="grid-wrap visible" id="gridWrap">
-    <div class="grid-head">
-      <span id="yourCity">The Garden</span>
-    </div>
-    <div class="bud-grid" id="budGrid"></div>
-    <div class="grid-footer">
-      <span class="live" id="liveCount">—</span>
-    </div>
   </div>
 </div>
 
@@ -852,22 +756,6 @@ function renderLockedBuds() {
 }
 renderLockedBuds();
 
-// ── Bud grid ────────────────────────────────────────────────────────────────
-function renderBudGrid(unlockedId = null) {
-  const grid = document.getElementById('budGrid');
-  grid.innerHTML = '';
-  CONFIG.tracks.forEach((t) => {
-    const b = document.createElement('div');
-    b.className = 'bud' + (unlockedId === t.id ? ' unlocked' : '');
-    b.innerHTML = '<span class="bud-num">' + String(t.id).padStart(2, '0') + '</span><div class="seed"></div>';
-    if (unlockedId === t.id) {
-      b.title = t.title;
-    }
-    grid.appendChild(b);
-  });
-}
-renderBudGrid();
-
 // ===== Pollen drift layer =====
 (function spawnPollen() {
   const layer = document.getElementById('pollenLayer');
@@ -903,19 +791,6 @@ renderBudGrid();
     p.style.setProperty('--peak', peak);
     layer.appendChild(p);
   }
-})();
-
-// Live counter — fake a slowly-rising number for now
-(function liveCounter(){
-  const el = document.getElementById('liveCount');
-  let base = 23 + Math.floor(Math.random() * 14);
-  function tick(){
-    const drift = Math.floor(Math.random() * 5) - 2;
-    base = Math.max(8, base + drift);
-    el.textContent = base + ' listening now';
-  }
-  tick();
-  setInterval(tick, 4500);
 })();
 
 // ── Geo ──────────────────────────────────────────────────────────────────────
@@ -970,7 +845,6 @@ function revoke() {
   document.getElementById('artistLine').textContent = CONFIG.artist;
 
   renderLockedBuds();
-  renderBudGrid();
 
   const btn = document.getElementById('btnLocate');
   btn.disabled = false;
@@ -1018,7 +892,6 @@ function unlockTrack(track) {
   playerWrap.innerHTML = (track.embed || CONFIG.defaultEmbed);
 
   // Bud grid
-  renderBudGrid(track.id);
   const yc = document.getElementById('yourCity');
   if (yc && track.city) yc.textContent = track.city;
 
